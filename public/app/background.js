@@ -9,8 +9,6 @@ var max = 0;//整个标签地址的最⼤值
 var timeInterval = 1000;
 var labelsData = [] //最终输出的数据
 var addressPool = [] //防地址重复的数组记录
-var newLabelsData = []
-let lastData = []
 
 chrome.browserAction.onClicked.addListener(function (tab) {
    // Send a message to the active tab
@@ -27,9 +25,9 @@ chrome.runtime.onMessage.addListener(
       //点击【开始抓取】的时候，App.js传来的总的要抓取的⻚⾯列表，并将相关数据进⾏重置
       if (request.type === "startScan") {
          labelsResult = request.data;
-         lastData = request.data2
-         // console.log("labelsResult", labelsResult);
          max = labelsResult.length;
+         // 在这里如何获取到的数据为一个[]那么会后面会报错
+         console.log("labelsResult", labelsResult, max);
          index = 0;
          typeIndex = 0
          labelsData = [];
@@ -48,14 +46,9 @@ chrome.runtime.onMessage.addListener(
          // console.log("request.data", request.data, request.data[0].group);
          for (let i = 0; i < request.data.length; i++) {
             let r = request.data[i];
-            if (addressPool.indexOf(r.address) === -1) {
-               console.log("...", r);
+            if (addressPool.indexOf(r.address) === -1) { // 如果addressPool中没有这个地址才会更新到结果中
+               console.log("labelsData+", r);
                labelsData.push(r);
-               let flag = true //假设不存在
-               lastData.forEach(item => {
-                  if (item.address === r.address) flag = false
-               });
-               if (flag) newLabelsData.push(r)
             }
          }
          // 记录已经抓到的地址，防重复
@@ -71,10 +64,12 @@ chrome.runtime.onMessage.addListener(
 );
 
 // 加随机定时的打开关闭指定的地址标签⻚⾯，触发content.js进⾏数据抓取
+// 一个标签会根据types的长度运行几次
 function scan() { // 以下逻辑⽤于拼接要打开的标签地址 
    let type = types[typeIndex]; //2, 3-0 
    currentLabelGroup = labelsResult[index].lastIndexOf("/");
    currentLabelGroup = labelsResult[index].slice(currentLabelGroup + 1)
+   console.log("currentLabelGroup", currentLabelGroup); // 此时打开页面的标签
    let url = `${labelsResult[index]}?subcatid=${type}&size=2000&start=0&col=1&order=asc`
    chrome.tabs.create({ url: url })
    typeIndex++;
@@ -92,11 +87,10 @@ function scan() { // 以下逻辑⽤于拼接要打开的标签地址
          console.log("index and max", index, max);
          // 整个列表的⻚⾯循环
          // if (index >= max) {
-         if (index >= 6) {
+         if (index >= max) {
             alert("Over, total records: " + labelsData.length);
             index = 0;
             typeIndex = 0;
-            console.log(labelsData, newLabelsData);
             downloadFile(JSON.stringify(labelsData));
          } else {
             scan();
@@ -104,7 +98,7 @@ function scan() { // 以下逻辑⽤于拼接要打开的标签地址
       } else {
          scan()
       }
-   }, time)
+   }, 6000)
 }
 
 // 文件下载
