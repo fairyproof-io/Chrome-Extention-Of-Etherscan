@@ -9,8 +9,8 @@
 
 .App-header {
     background-color: #222;
-    height: 150px;
-    padding: 20px;
+    height: 80px;
+    padding: 10px;
     color: white;
 }
 
@@ -29,4 +29,29 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+.niceButton {
+    display: inline-block;
+    padding: 12px 22px;
+    width: 80%;
+    margin: 10px auto;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    color: #fff;
+    background-color: rgb(16, 185, 214);
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 3px #999;
+}
+.niceButton:hover {
+    background-color: #1795bb;
+}
+.niceButton:active {
+    background-color: #1795bb;
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
 }
