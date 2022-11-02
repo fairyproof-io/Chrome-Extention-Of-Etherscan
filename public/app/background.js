@@ -10,7 +10,8 @@ var timeInterval = 1000;
 var labelsData = [] //最终输出的数据
 var addressPool = [] //防地址重复的数组记录
 var chainInfo = {}
-var isFinish = false
+
+var lastFile = []
 
 chrome.browserAction.onClicked.addListener(function (tab) {
    // Send a message to the active tab
@@ -31,10 +32,20 @@ chrome.runtime.onMessage.addListener(
          max = labelsResult.length;
          // 在这里如何获取到的数据为一个[]那么会后面会报错 (如果没有更新数据的情况)
          console.log("labelsResult", labelsResult, max);
+         lastFile = request.lastFile
+         console.log(lastFile);
+         if (lastFile.length) {
+            lastFile.forEach(element => {
+               if (labelsResult.join(" ").includes(element.group)) {
+                  addressPool.push(element.address)
+               }
+            });
+         }
+         console.log("lastFile", lastFile, addressPool);
          index = 0;
          typeIndex = 0
          labelsData = [];
-         addressPool = [];
+         // addressPool = [];
          scan();
          sendResponse({ farewell: request.data });
          return true;
@@ -59,7 +70,9 @@ chrome.runtime.onMessage.addListener(
          // }
          for (let i = 0; i < request.data.length; i++) {
             let r = request.data[i];
+            console.log("检测addressPool中是否有这个地址", addressPool, r.address, addressPool.indexOf(r.address));
             if (addressPool.indexOf(r.address) === -1) { // 如果addressPool中没有这个地址才会更新到结果中
+               // 为什么这么addressPool中有的地址还是会执行到这一步
                console.log("labelsData+", r);
                currentLabelData.push(r)
             }
@@ -76,7 +89,7 @@ chrome.runtime.onMessage.addListener(
          addressPool = addressPool.concat(addresses);
          // console.log("addressPool", addressPool);
          // console.log("labelsData", labelsData)
-         sendResponse({ currentLabelData: currentLabelData, isFinish });
+         sendResponse({ currentLabelData: currentLabelData });
          return true;
       }
    }
@@ -106,13 +119,12 @@ function scan() { // 以下逻辑⽤于拼接要打开的标签地址
          index++;
          console.log("此时标签index:", index, "标签最大index:", max - 1);
          // 整个列表的⻚⾯循环
-         // if (index >= max) {
-         if (index >= 1) {
+         if (index >= max) {
+            // if (index >= 1) {
             alert("Over, total records: " + labelsData.length);
-            isFinish = window.confirm("接下来本次更新的标签数量将会被保存到localStorage了")
             index = 0;
             typeIndex = 0;
-            // downloadFile(JSON.stringify(labelsData));
+            downloadFile(JSON.stringify(labelsData));
          } else {
             scan();
          }

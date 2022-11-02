@@ -44,12 +44,6 @@ const Main = () => {
   )
 }
 
-// class Main extends React.Component {
-//   render() {
-//     return 
-//   }
-
-// }
 
 
 const app = document.createElement('div');
